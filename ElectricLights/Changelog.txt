@@ -1,4 +1,8 @@
-﻿v1.0.4.2 - September 6, 2019
+﻿v1.0.4.3 - September 6, 2019
+* Minor fixes
+
+v1.0.4.2 - September 6, 2019
+* Updated to KSP 1.7.3
 * Code refactor
 * (Unofficial) Fork from https://github.com/Alshain01/KSP-ElectricLights by k-dueb
 

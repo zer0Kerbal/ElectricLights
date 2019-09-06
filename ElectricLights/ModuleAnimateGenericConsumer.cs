@@ -12,6 +12,7 @@ namespace ElectricLights
 
         public override void OnStart(StartState state)
         {
+            base.OnStart(state);
             if ((state != StartState.None) && (state != StartState.Editor))
             {
                 moduleInteriorLight = part.Modules.GetModule<ModuleInteriorLight>();
@@ -25,7 +26,6 @@ namespace ElectricLights
 #endif
                 }
             }
-            base.OnStart(state);
         }
 
         public override void OnUpdate()
@@ -65,7 +65,6 @@ namespace ElectricLights
                     }
                 }
             }
-            base.OnUpdate();
         }
     }
 }

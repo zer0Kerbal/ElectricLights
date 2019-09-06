@@ -18,6 +18,7 @@ namespace ElectricLights
 
         public override void OnStart(StartState state)
         {
+            base.OnStart(state);
             if ((state != StartState.None) && (state != StartState.Editor))
             {
                 ready = true;
@@ -25,7 +26,6 @@ namespace ElectricLights
                 Debug.Log("ModuleInteriorLight.OnStart(): ready!");
 #endif
             }
-            base.OnStart(state);
         }
 
         public void FixedUpdate()
