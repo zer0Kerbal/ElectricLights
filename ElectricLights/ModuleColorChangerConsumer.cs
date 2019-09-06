@@ -1,51 +1,71 @@
 ﻿using System.Text;
 using UnityEngine;
-using KSP.Localization;
 
 namespace ElectricLights
 {
-    class ModuleColorChangerConsumer : ModuleColorChanger, IModuleInfo
+    class ModuleColorChangerConsumer : ModuleColorChanger
     {
-        const float resourceRate = 1.0F;
-        const string resourceType = "ElectricCharge";
+        ModuleInteriorLight moduleInteriorLight;
 
-        [KSPField]
-        public double resourceAmount = 0.02;
+        private bool lastAnimState = false;
+        private bool ready = false;
+
+        public override void OnStart(StartState state)
+        {
+            if ((state != StartState.None) && (state != StartState.Editor))
+            {
+                moduleInteriorLight = part.Modules.GetModule<ModuleInteriorLight>();
+                if (moduleInteriorLight != null)
+                {
+                    lastAnimState = animState;
+                    moduleInteriorLight.interiorLight = animState;
+                    ready = true;
+#if DEBUG
+                    Debug.Log("ModuleColorChangerConsumer.OnStart(): ready!");
+#endif
+                }
+            }
+            base.OnStart(state);
+        }
 
         public override void OnUpdate()
         {
-            if (HighLogic.LoadedSceneIsFlight && animState && part.RequestResource(resourceType, resourceAmount * resourceRate * TimeWarp.deltaTime) <= 0)
-                SetState(false);
-
+            if (ready)
+            {
+                if (HighLogic.LoadedSceneIsFlight)
+                {
+                    if (animState != lastAnimState)
+                    {
+                        // Animation Lights changed
+                        if (!animState)
+                        {
+                            // Animation Lights are now OFF
+                            moduleInteriorLight.interiorLight = false;
+#if DEBUG
+                            Debug.Log("ModuleColorChangerConsumer.OnUpdate(): Switched OFF interior lights.");
+#endif
+                        }
+                        else
+                        {
+                            // Animation Lights are now ON
+                            moduleInteriorLight.interiorLight = true;
+#if DEBUG
+                            Debug.Log("ModuleColorChangerConsumer.OnUpdate(): Switched ON interior lights.");
+#endif
+                        }
+                        lastAnimState = animState;
+                    }
+                    else if (!moduleInteriorLight.interiorLight && animState)
+                    {
+                        // Interior Lights OFF (EC depleted) and Animation Lights ON
+                        ToggleEvent();
+#if DEBUG
+                        Debug.Log("ModuleColorChangerConsumer.OnUpdate(): Turned OFF interior lights. (EC depleted)");
+#endif
+                    }
+                }
+            }
             base.OnUpdate();
-        }
-
-        public override string GetInfo()
-        {
-            StringBuilder info = new StringBuilder(base.GetInfo());
-            info.AppendLine(Localizer.Format("<color=#FF8C00><b><<1>></b></color>", Localizer.GetStringByTag("#autoLOC_244332")));
-            info.Append(Localizer.Format(Localizer.GetStringByTag("#autoLOC_244201"), Localizer.GetStringByTag("#autoLOC_501004"), (resourceRate * 60 * resourceAmount).ToString()));
-            return info.ToString();
-        }
-
-        public string GetModuleTitle()
-        {
-            return Localizer.GetStringByTag("#autoLOC_6003003");
-        }
-
-        public override string GetModuleDisplayName()
-        {
-            return Localizer.GetStringByTag("#autoLOC_6003003");
-        }
-
-        public string GetPrimaryField()
-        {
-            return null;
-        }
-
-        public Callback<Rect> GetDrawModulePanelCallback()
-        {
-            return null;
         }
     }
 }

@@ -1,4 +1,8 @@
-﻿v1.0.4 - June 23, 2017
+﻿v1.0.4.2 - September 6, 2019
+* Code refactor
+* (Unofficial) Fork from https://github.com/Alshain01/KSP-ElectricLights by k-dueb
+
+v1.0.4 - June 23, 2017
 * Code optimization
 * Change license to MIT
 

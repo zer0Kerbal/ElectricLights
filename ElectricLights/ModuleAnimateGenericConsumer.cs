@@ -1,74 +1,71 @@
 ﻿using System.Text;
 using UnityEngine;
-using KSP.Localization;
 
 namespace ElectricLights
 {
-    class ModuleAnimateGenericConsumer : ModuleAnimateGeneric, IModuleInfo
+    class ModuleAnimateGenericConsumer : ModuleAnimateGeneric
     {
-        const float resourceRate = 1.0F;
-        const string resourceType = "ElectricCharge";
+        ModuleInteriorLight moduleInteriorLight;
 
-        [KSPField]
-        public double resourceAmount = 0.02;
+        private bool lastAnimSwitch = false;
+        private bool ready = false;
 
-        bool shutdown = false;
+        public override void OnStart(StartState state)
+        {
+            if ((state != StartState.None) && (state != StartState.Editor))
+            {
+                moduleInteriorLight = part.Modules.GetModule<ModuleInteriorLight>();
+                if (moduleInteriorLight != null)
+                {
+                    lastAnimSwitch = animSwitch;
+                    moduleInteriorLight.interiorLight = !animSwitch; // Light animSwitch is reversed (ON=False, OFF=True)
+                    ready = true;
+#if DEBUG
+                    Debug.Log("ModuleAnimateGenericConsumer.OnStart(): ready!");
+#endif
+                }
+            }
+            base.OnStart(state);
+        }
 
         public override void OnUpdate()
         {
-            if (HighLogic.LoadedSceneIsFlight)
+            if (ready)
             {
-                double ecRequested = resourceAmount * resourceRate * TimeWarp.deltaTime;
-                if (!shutdown && Progress != 0)
+                if (HighLogic.LoadedSceneIsFlight)
                 {
-                    if (part.RequestResource(resourceType, ecRequested) <= 0)
+                    if (animSwitch != lastAnimSwitch)
                     {
-                        Toggle();
-                        shutdown = true;
+                        // Animation Lights changed
+                        if (animSwitch)
+                        {
+                            // Animation Lights are now OFF
+                            moduleInteriorLight.interiorLight = false;
+#if DEBUG
+                            Debug.Log("ModuleAnimateGenericConsumer.OnUpdate(): Switched OFF interior lights.");
+#endif
+                        }
+                        else
+                        {
+                            // Animation Lights are now ON
+                            moduleInteriorLight.interiorLight = true;
+#if DEBUG
+                            Debug.Log("ModuleAnimateGenericConsumer.OnUpdate(): Switched ON interior lights.");
+#endif
+                        }
+                        lastAnimSwitch = animSwitch;
                     }
-                }
-                else if (shutdown)
-                {
-                    if (part.RequestResource(resourceType, ecRequested) >= ecRequested)
+                    else if (!moduleInteriorLight.interiorLight && !animSwitch)
                     {
+                        // Interior Lights OFF (EC depleted) and Animation Lights ON (animSwitch is reversed: ON=False, OFF=True)
                         Toggle();
-                        shutdown = false;
-                    }
-                    else if (Progress != 0 && !IsMoving())
-                    {
-                        Toggle();
+#if DEBUG
+                        Debug.Log("ModuleAnimateGenericConsumer.OnUpdate(): Turned OFF interior lights. (EC depleted)");
+#endif
                     }
                 }
             }
             base.OnUpdate();
-        }
-
-        public override string GetInfo()
-        {
-            StringBuilder info = new StringBuilder(base.GetInfo());
-            info.AppendLine(Localizer.Format("<color=#FF8C00><b><<1>></b></color>", Localizer.GetStringByTag("#autoLOC_244332")));
-            info.Append(Localizer.Format(Localizer.GetStringByTag("#autoLOC_244201"), Localizer.GetStringByTag("#autoLOC_501004"), (resourceRate * 60 * resourceAmount).ToString()));
-            return info.ToString();
-        }
-
-        public string GetModuleTitle()
-        {
-            return Localizer.GetStringByTag("#autoLOC_6003003");
-        }
-
-        public override string GetModuleDisplayName()
-        {
-            return Localizer.GetStringByTag("#autoLOC_6003003");
-        }
-
-        public string GetPrimaryField()
-        {
-            return null;
-        }
-
-        public Callback<Rect> GetDrawModulePanelCallback()
-        {
-            return null;
         }
     }
 }
