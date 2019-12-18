@@ -1,4 +1,10 @@
-﻿v1.0.4.3 - September 6, 2019
+﻿v1.0.5.0 - December 18, 2019
+* Updated to KSP 1.8.1
+
+v1.0.4.4 - September 8, 2019
+* Updated ModuleManager patches to apply to every crewed parts who have interior lights
+
+v1.0.4.3 - September 6, 2019
 * Minor fixes
 
 v1.0.4.2 - September 6, 2019
